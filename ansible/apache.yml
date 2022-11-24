@@ -1,0 +1,34 @@
+---
+- name: Instalando o Apache
+  ansible.builtin.yum:
+    name: httpd
+    state: latest
+
+- name: Configurando o serviço do Apache no rc.local
+  ansible.builtin.lineinfile:
+    path: /etc/rc.d/rc.local
+    line: 'service httpd start'
+    backup: yes
+
+- name: Alterando a permissão do arquivo rc.local para executar o httpd
+  ansible.builtin.file:
+    path: /etc/rc.d/rc.local
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Config personalizada do apache
+  ansible.builtin.copy: 
+    src: files/httpd.conf
+    dest: /etc/httpd/conf/httpd.conf
+    owner: webapp
+    group: webapp
+    mode: 0644
+
+- name: Alterando a permissão do pasta html para o webapp
+  ansible.builtin.file: 
+    path: /var/www/html
+    owner: webapp
+    group: webapp
+    mode: 0644
+

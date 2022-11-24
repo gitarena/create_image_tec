@@ -1,0 +1,27 @@
+---
+- name: "Get CodeDeploy | s3"
+  ansible.builtin.get_url:
+    url: "https://aws-codedeploy-{{ ansible_ec2_placement_region }}.s3.amazonaws.com/latest/install"
+    dest: /tmp/codedeploy-install
+  tags:
+    - codedeploy
+
+- name: "Dando permissão ao instalador do Codedeploy"
+  ansible.builtin.file:
+    state: file
+    path: /tmp/codedeploy-install
+    group: root
+    owner: root
+    mode: 0755
+  tags:
+    - codedeploy
+
+- name: "Instalando o Codedeploy"
+  ansible.builtin.command: /tmp/codedeploy-install auto
+  tags:
+    - codedeploy  
+
+- name: "Parando o serviço do Codedeploy"
+  ansible.builtin.command: service codedeploy-agent stop
+  tags:
+    - codedeploy

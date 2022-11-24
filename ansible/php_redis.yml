@@ -1,0 +1,29 @@
+---
+- name: Clone the PhpRedis repo.
+  ansible.builtin.git:
+    repo: https://github.com/phpredis/phpredis.git
+    dest: ~/phpredis
+    version: 5.3.2
+    accept_hostkey: true
+    depth: 1
+
+- name: Run phpize.
+  ansible.builtin.command: >
+    phpize
+    chdir=~/phpredis
+- name: Run configure script.
+  ansible.builtin.command: >
+    ./configure
+    chdir=~/phpredis
+
+- name: Build the default target
+  community.general.make:
+    chdir: ~/phpredis
+
+- name: Run 'install' target as root
+  community.general.make:
+    chdir: ~/phpredis
+    target: install
+
+- name: Configurando o redis.ini
+  ansible.builtin.raw: echo extension=redis.so > /etc/php.d/redis.ini

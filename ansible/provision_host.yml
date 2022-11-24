@@ -1,0 +1,68 @@
+---
+- hosts: servers
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: "Carregando variáveis específicas do SO"
+      include_vars: "{{ ansible_os_family }}.yml"
+      tags:
+        - codedeploy
+
+    - name: "Realizando update do sistema"
+      ansible.builtin.command: yum update -y
+
+    - name: Criando usuário webapp
+      ansible.builtin.user:
+        name: webapp
+        shell: /sbin/nologin
+        system: yes
+        create_home: false
+
+    - name: Instalando developer tools
+      ansible.builtin.yum:
+        name: "@Development tools"
+        state: present
+
+    - name: "Instalando pacotes | package manager"
+      ansible.builtin.package:
+        state: present
+        name: "{{ item }}"
+      with_items: "{{ packages }}"
+      tags:
+        - codedeploy
+
+    - name: "Instalando pacotes | pip"
+      ansible.builtin.pip:
+        state: present
+        name: "{{ item }}"
+      with_items:
+        - awscli
+      tags:
+        - codedeploy
+
+    - name: Instalando o php7.4  
+      ansible.builtin.include_tasks: php_74.yml 
+
+    - name: Instalando o Apache  
+      ansible.builtin.include_tasks: apache.yml 
+
+    - name: Instalando o CodeDeploy  
+      ansible.builtin.include_tasks: code_deploy.yml    
+
+    - name: Instalando os agentes da AWS (AWSLogs e CloudWatch) 
+      ansible.builtin.include_tasks: aws_agents.yml
+
+    - name: Configurando o NewRelic   
+      ansible.builtin.include_tasks: newrelic.yml
+
+    - name: Configurando o phpredis-5.3.2   
+      ansible.builtin.include_tasks: phpredis.yml
+
+    - name: Configurando o ssl   
+      ansible.builtin.include_tasks: https-instance.yml      
+
+    - name: Reiniciando o Apache
+      ansible.builtin.service:
+        name: "httpd"
+        state: restarted 

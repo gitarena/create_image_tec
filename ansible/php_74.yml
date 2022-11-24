@@ -1,0 +1,113 @@
+---
+- name: "Habilitando o php7.4 no Amazon Linux 2"
+  ansible.builtin.command: amazon-linux-extras enable php7.4
+
+- name: Habilitando o repositório EPEL
+  ansible.builtin.yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+
+- name: Habilitando o repositório REMI
+  ansible.builtin.yum:
+    name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    state: present
+
+- name: Instalando o pacote yum-utils
+  ansible.builtin.yum:
+    name: yum-utils
+    state: present
+
+- name: "Configurando o PHP com o PHP-FPM"
+  ansible.builtin.command: "{{ item }}"
+  with_items:
+    - yum-config-manager --disable remi-php54
+    - yum-config-manager --enable remi-php74
+
+- name: "Instalando php7.4 e seus módulos no Amazon Linux 2"
+  ansible.builtin.yum:
+    name:  
+      - php
+      - php-bcmath
+      - php-bz2
+      - php-calendar
+      - php-core
+      - php-common
+      - php-ctype
+      - php-curl
+      - php-date
+      - php-dom
+      - php-exif
+      - php-fileinfo
+      - php-filter
+      - php-ftp
+      - php-fpm
+      - php-gd
+      - php-gettext
+      - php-hash
+      - php-iconv
+      - php-intl
+      - php-json
+      - php-libxml
+      - php-mbstring
+      - php-mysqli
+      - php-mysqlnd
+      - php-odbc
+      - php-openssl
+      - php-pcntl
+      - php-pcre
+      - php-pdo
+      - php-pdo_mysql
+      - php-pdo_odbc
+      - php-pdo_sqlite
+      - php-pgsql
+      - php-phar
+      - php-posix
+      - php-readline
+      - php-reflection
+      - php-session
+      - php-shmop
+      - php-simplexml
+      - php-soap
+      - php-sodium
+      - php-sockets
+      - php-spl
+      - php-sqlite3
+      - php-standard
+      - php-sysvmsg
+      - php-sysvsem
+      - php-sysvshm
+      - php-tokenizer
+      - php-wddx
+      - php-xml
+      - php-xmlreader
+      - php-xmlrpc
+      - php-xmlwriter
+      - php-xsl
+      - php-opcache
+      - php-zip
+      - php-zlib
+    state: present
+
+- name: Copiando o arquivo de configuração php.ini
+  ansible.builtin.copy: 
+    src: files/php.ini
+    dest: /etc/php.ini
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Copiando o arquivo de configuração php.conf
+  ansible.builtin.copy: 
+    src: files/php.conf
+    dest: /etc/httpd/conf.d/php.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Config personalizada do php-fpm
+  ansible.builtin.copy: 
+    src: files/www.conf
+    dest: /etc/php-fpm.d/www.conf
+    owner: root
+    group: root
+    mode: 0644
